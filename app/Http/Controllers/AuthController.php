@@ -14,31 +14,30 @@ class AuthController extends Controller
 {
     public function showRegister()
     {
+        
         return view('auth.register');
     }
+public function register(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|min:6|confirmed', // password_confirmation required in form
+    ]);
 
-    public function register(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email', // اصلاح شده
-            'password' => 'required|min:6|confirmed',        // حتما فیلد password_confirmation داشته باش
-        ]);
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'email_verified_at' => null,
+        'remember_token' => Str::random(60),
+        'verification_token' => Str::random(60),
+    ]);
+    Mail::to($user->email)->send(new VerificationMail($user));
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'email_verified_at' => null,
-            'remember_token' => Str::random(60),
-            'verification_token' => Str::random(60),
-        ]);
+    return redirect()->route('login.form')->with('success', 'ثبت نام موفق بود لطفا ایمیل خود را تایید کنید');
+}
 
-            Mail::to($user->email)->send(new VerificationMail($user));
-
-
-        return redirect()->route('login.form')->with('success', 'ثبت نام موفق بود لطفا ایمیل خود را تایید کنید');
-    }
 
     public function showLogin()
     {
