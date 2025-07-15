@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Mail\VerificationMail;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -32,7 +34,8 @@ class AuthController extends Controller
             'verification_token' => Str::random(60),
         ]);
 
-        // TODO: ارسال ایمیل تاییدیه
+            Mail::to($user->email)->send(new VerificationMail($user));
+
 
         return redirect()->route('login.form')->with('success', 'ثبت نام موفق بود لطفا ایمیل خود را تایید کنید');
     }
