@@ -13,39 +13,39 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
-    {
-        
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|string|email|unique:users',
-            'password' => 'required|string|min:6|confirmed'
-        ]);
 
 
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => bcrypt($request->password)
-        ]);
+public function register(Request $request)
+{
+    $validated = $request->validate([
+        'name'     => 'required|string|max:255',
+        'email'    => 'required|string|email|unique:users',
+        'password' => 'required|string|min:6|confirmed'
+    ]);
 
-        $accessToken = JWTAuth::fromUser($user);
+    $user = User::create([
+        'name'     => $request->name,
+        'email'    => $request->email,
+        'password' => bcrypt($request->password)
+    ]);
 
-        $rawRefreshToken = Str::random(64);
+    $accessToken = JWTAuth::fromUser($user);
+    $rawRefreshToken = Str::random(64);
 
-        RefreshToken::create([
-            'user_id'    => $user->id,
-            'token'      => hash('sha256', $rawRefreshToken),
-            'expires_at' => now()->addDays(7),
-        ]);
+    RefreshToken::create([
+        'user_id'    => $user->id,
+        'token'      => hash('sha256', $rawRefreshToken),
+        'expires_at' => now()->addDays(7),
+    ]);
 
-        return response()->json([
-            'access_token'  => $accessToken,
-            'refresh_token' => $rawRefreshToken,
-            'token_type'    => 'bearer',
-            'expires_in'    => auth()->factory()->getTTL() * 60
-        ]);
-    }
+    return response()->json([
+        'access_token'  => $accessToken,
+        'refresh_token' => $rawRefreshToken,
+        'token_type'    => 'bearer',
+        'expires_in' => auth('api')->factory()->getTTL() * 60
+
+    ]);
+}
 
     public function login(Request $request)
     {
@@ -76,6 +76,7 @@ class AuthController extends Controller
 
     public function me()
     {
+        
         return response()->json(auth()->user());
     }
 
