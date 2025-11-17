@@ -47,37 +47,37 @@ public function register(Request $request)
     ]);
 }
 
-    public function login(Request $request)
-    {
-        
-        $credentials = $request->only('email', 'password');
+  public function login(Request $request)
+{
+    $credentials = $request->only('email', 'password');
 
-        if (! $accessToken = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Invalid credentials'], 401);
-        }
-
-        $user = auth()->user();
-
-        $rawRefreshToken = Str::random(64);
-
-        RefreshToken::create([
-            'user_id'    => $user->id,
-            'token'      => hash('sha256', $rawRefreshToken),
-            'expires_at' => now()->addDays(7),
-        ]);
-
-        return response()->json([
-            'access_token'  => $accessToken,
-            'refresh_token' => $rawRefreshToken,
-            'token_type'    => 'bearer',
-            'expires_in'    => auth()->factory()->getTTL() * 60
-        ]);
+    if (! $accessToken = auth('api')->attempt($credentials)) {
+        return response()->json(['error' => 'Invalid credentials'], 401);
     }
+
+    $user = auth('api')->user();
+
+    $rawRefreshToken = Str::random(64);
+
+    RefreshToken::create([
+        'user_id'    => $user->id,
+        'token'      => hash('sha256', $rawRefreshToken),
+        'expires_at' => now()->addDays(7),
+    ]);
+
+    return response()->json([
+        'access_token'  => $accessToken,
+        'refresh_token' => $rawRefreshToken,
+        'token_type'    => 'bearer',
+        'expires_in'    => auth('api')->factory()->getTTL() * 60
+    ]);
+}
+
 
     public function me()
     {
         
-        return response()->json(auth()->user());
+    return response()->json(auth('api')->user());
     }
 
     public function logout(Request $request)
